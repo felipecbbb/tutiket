@@ -15,7 +15,7 @@ type ResetPasswordEmailProps = {
   appName?: string;
 };
 
-export function ResetPasswordEmail({ url, appName = "proyecto" }: ResetPasswordEmailProps) {
+export function ResetPasswordEmail({ url, appName = "Noa Events" }: ResetPasswordEmailProps) {
   return (
     <Html lang="es">
       <Head />

@@ -15,7 +15,7 @@ type MagicLinkEmailProps = {
   appName?: string;
 };
 
-export function MagicLinkEmail({ url, appName = "proyecto" }: MagicLinkEmailProps) {
+export function MagicLinkEmail({ url, appName = "Noa Events" }: MagicLinkEmailProps) {
   return (
     <Html lang="es">
       <Head />

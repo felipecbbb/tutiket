@@ -5,7 +5,6 @@ import {
   Building2,
   CalendarCheck,
   Gift,
-  Home,
   LayoutDashboard,
   MapPin,
   Megaphone,
@@ -19,6 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Logo } from "@/components/shared/logo";
 
 type Role = "user" | "organizer" | "validator" | "pr_member" | "pr_manager" | "admin";
 
@@ -114,12 +114,10 @@ export function Sidebar({
     <nav className="flex h-full flex-col p-4">
       <Link
         href="/"
-        className="mb-6 inline-flex items-center gap-2 font-display text-lg font-bold"
+        aria-label="Noa Events"
+        className="mb-6 inline-flex items-center hover:opacity-80 transition-opacity"
       >
-        <span className="inline-flex size-7 items-center justify-center rounded-md bg-foreground text-background">
-          <Home className="size-4" />
-        </span>
-        <span>proyecto</span>
+        <Logo variant="full" size="md" />
       </Link>
 
       <div className="flex-1 overflow-y-auto -mx-1 px-1">

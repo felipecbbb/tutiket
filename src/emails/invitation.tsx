@@ -25,7 +25,7 @@ export function InvitationEmail({
   organizationName,
   roleLabel,
   message,
-  appName = "proyecto",
+  appName = "Noa Events",
 }: InvitationEmailProps) {
   return (
     <Html lang="es">
