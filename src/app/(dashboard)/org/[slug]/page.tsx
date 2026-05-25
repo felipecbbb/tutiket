@@ -49,6 +49,36 @@ export default async function OrgDetailPage({ params }: { params: Params }) {
         </p>
       )}
 
+      {org.status === "pending" && (
+        <div className="mt-6 rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-start gap-3">
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+            ⏳
+          </span>
+          <div className="text-sm">
+            <p className="font-medium">Tu organización está pendiente de aprobación</p>
+            <p className="mt-0.5 text-muted-foreground">
+              Puedes seguir configurando eventos, entradas y equipo, pero NO
+              aparecerán en la web pública hasta que el super-admin verifique
+              la cuenta. Recibirás una notificación cuando esté lista.
+            </p>
+          </div>
+        </div>
+      )}
+      {org.status === "rejected" && (
+        <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3 text-sm">
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-destructive/15 text-destructive">
+            ✕
+          </span>
+          <div>
+            <p className="font-medium">Organización rechazada</p>
+            <p className="mt-0.5 text-muted-foreground">
+              Tus eventos no aparecen en público. Contacta con soporte si crees
+              que es un error.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="mt-6 flex flex-wrap gap-2">
         <Button asChild variant="default" size="sm">
           <Link href={`/org/${slug}/editar`}>

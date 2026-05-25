@@ -194,11 +194,14 @@ export async function listPublicUpcomingEvents(limit = 24) {
         ticketsSold: events.ticketsSold,
       })
       .from(events)
+      .innerJoin(organizations, eq(organizations.id, events.organizationId))
       .where(
         and(
           eq(events.status, "active"),
           eq(events.isPublic, true),
           isNull(events.deletedAt),
+          isNull(organizations.deletedAt),
+          eq(organizations.status, "verified"),
           gte(events.endDate, now),
         ),
       )
@@ -211,18 +214,22 @@ export async function listPublicUpcomingEvents(limit = 24) {
 }
 
 export async function getPublicEventBySlug(slug: string) {
-  const [evt] = await db
-    .select()
+  const [row] = await db
+    .select({ events })
     .from(events)
+    .innerJoin(organizations, eq(organizations.id, events.organizationId))
     .where(
       and(
         eq(events.slug, slug),
         eq(events.status, "active"),
         eq(events.isPublic, true),
+        eq(organizations.status, "verified"),
         isNull(events.deletedAt),
+        isNull(organizations.deletedAt),
       ),
     )
     .limit(1);
+  const evt = row?.events;
   // void to keep symmetric with other helpers
   void organizations;
   return evt ?? null;

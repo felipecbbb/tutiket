@@ -198,11 +198,44 @@ export async function adminUpdateOrgStatus(
   status: "pending" | "verified" | "rejected",
 ) {
   await ensureAdmin();
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.id, id))
+    .limit(1);
+  if (!org) throw new Error("Organización no encontrada");
+
   await db
     .update(organizations)
     .set({ status, updatedAt: new Date() })
     .where(eq(organizations.id, id));
+
+  // Notificar al owner del cambio
+  if (org.userId && org.status !== status) {
+    const { createNotification } = await import("@/server/actions/notifications");
+    await createNotification({
+      userId: org.userId,
+      type: "organization_verified",
+      title:
+        status === "verified"
+          ? "¡Organización aprobada!"
+          : status === "rejected"
+            ? "Organización rechazada"
+            : "Organización marcada como pendiente",
+      message:
+        status === "verified"
+          ? `"${org.name}" ya está aprobada. Tus eventos activos aparecerán en la web pública.`
+          : status === "rejected"
+            ? `"${org.name}" ha sido rechazada. Contacta con soporte si crees que es un error.`
+            : `"${org.name}" vuelve a estado pendiente.`,
+      organizationId: org.id,
+    });
+  }
+
   revalidatePath("/admin/organizaciones");
+  revalidatePath("/org");
+  revalidatePath(`/org/${org.slug}`);
+  revalidatePath("/");
 }
 
 export async function adminDeleteOrg(id: string) {

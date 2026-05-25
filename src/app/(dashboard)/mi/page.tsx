@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowUpRight, Sparkles, Ticket } from "lucide-react";
+import { ArrowUpRight, Megaphone, Sparkles, Ticket } from "lucide-react";
 import { requireSession } from "@/server/auth";
 import { getMyPoints } from "@/server/actions/loyalty";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SearchParams = Promise<{ error?: string }>;
@@ -78,15 +79,40 @@ export default async function MyAccountPage({
         </Card>
       </div>
 
-      <div className="mt-4">
-        <Link
-          href="/org"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-        >
-          {role === "user" ? "¿Organizas eventos? Empieza aquí" : "Mis organizaciones"}
-          <ArrowUpRight className="size-4" />
-        </Link>
-      </div>
+      {role === "user" ? (
+        <Card className="mt-6 border-primary/40 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Megaphone className="size-5 text-primary" />
+              ¿Organizas eventos?
+            </CardTitle>
+            <CardDescription>
+              Convierte tu cuenta en cuenta de promotor. Vas a poder crear
+              organización, eventos, entradas, equipo de RR.PP. y mucho más.
+              Tu cuenta pasa por una breve verificación del super-admin antes
+              de que tus eventos aparezcan en la web pública.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild size="lg">
+              <Link href="/organizar">
+                Empezar onboarding
+                <ArrowUpRight className="size-5" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="mt-4">
+          <Link
+            href="/org"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+          >
+            Mis organizaciones
+            <ArrowUpRight className="size-4" />
+          </Link>
+        </div>
+      )}
 
       <div className="mt-10 rounded-xl border border-border bg-card p-6">
         <h2 className="font-display text-2xl font-bold mb-1">Tus datos</h2>
