@@ -12,4 +12,3 @@ export * from "./guests";
 export * from "./notifications";
 export * from "./pr";
 export * from "./invitations";
-export * from "./loyalty";

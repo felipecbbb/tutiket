@@ -36,7 +36,6 @@ export const auth = betterAuth({
       gender: { type: "string", required: false },
       phone: { type: "string", required: false },
       postalCode: { type: "string", required: false },
-      loyaltyPoints: { type: "number", defaultValue: 0, input: false },
     },
   },
   emailAndPassword: {

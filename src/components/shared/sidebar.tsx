@@ -4,7 +4,6 @@ import {
   Bell,
   Building2,
   CalendarCheck,
-  Gift,
   LayoutDashboard,
   MapPin,
   Megaphone,
@@ -12,7 +11,6 @@ import {
   ScanLine,
   Settings,
   Shield,
-  Sparkles,
   Ticket,
   User,
   Users,
@@ -41,7 +39,6 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { href: "/mi", label: "Perfil", icon: User },
       { href: "/mi/notificaciones", label: "Notificaciones", icon: Bell },
-      { href: "/mi/puntos", label: "Twinpoints", icon: Sparkles },
     ],
   },
   {
@@ -205,7 +202,6 @@ export function Sidebar({
       {/* keep imports satisfied for unused icons we may use later */}
       <span className="hidden">
         <BarChart3 />
-        <Gift />
         <Receipt />
       </span>
     </nav>

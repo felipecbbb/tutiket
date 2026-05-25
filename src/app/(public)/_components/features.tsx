@@ -9,7 +9,6 @@ import {
   Receipt,
   ScanLine,
   Ticket,
-  TrendingUp,
   Users,
 } from "lucide-react";
 
@@ -56,11 +55,6 @@ const FEATURES = [
     icon: Calendar,
     title: "Eventos de todo tipo",
     body: "Conciertos, festivales, partidos, conferencias, fiestas, bodas. Personaliza tu página por evento.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Twinpoints loyalty",
-    body: "Premia a tus clientes. Acumulan puntos con cada compra y los canjean por experiencias.",
   },
 ];
 
