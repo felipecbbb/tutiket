@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowUpRight, Calendar, MapPin, Plus, Ticket } from "lucide-react";
+import { ArrowUpRight, BadgePercent, BarChart3, Calendar, MapPin, Plus, Ticket, Users } from "lucide-react";
 import { getOrganizationBySlug } from "@/server/actions/organizations";
 import { listEventsByOrg } from "@/server/actions/events";
 import { listVenuesByOrg } from "@/server/actions/venues";
@@ -46,6 +46,27 @@ export default async function OrgDetailPage({ params }: { params: Params }) {
           {org.location}
         </p>
       )}
+
+      <div className="mt-6 flex flex-wrap gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/org/${slug}/stats`}>
+            <BarChart3 className="size-4" />
+            Estadísticas
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/org/${slug}/equipo`}>
+            <Users className="size-4" />
+            Equipo
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/org/${slug}/cupones`}>
+            <BadgePercent className="size-4" />
+            Cupones
+          </Link>
+        </Button>
+      </div>
 
       {/* Eventos */}
       <section className="mt-12">

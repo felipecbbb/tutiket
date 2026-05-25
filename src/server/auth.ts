@@ -2,7 +2,13 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 
-export type UserRole = "user" | "organizer" | "validator" | "pr_member" | "admin";
+export type UserRole =
+  | "user"
+  | "organizer"
+  | "validator"
+  | "pr_member"
+  | "pr_manager"
+  | "admin";
 
 export async function getSession() {
   return auth.api.getSession({ headers: await headers() });

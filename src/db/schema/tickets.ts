@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { events, ticketTypes } from "./events";
+import { organizations } from "./organizations";
 
 export const ticketStatusEnum = pgEnum("ticket_status", [
   "sold",
@@ -93,7 +94,10 @@ export const coupons = pgTable("coupons", {
   endDate: timestamp("end_date").notNull(),
   status: couponStatusEnum("status").default("active").notNull(),
 
-  // Scope opcional
+  // Scope: si organizationId está, aplica a toda la org. Si eventId está, solo ese evento.
+  organizationId: uuid("organization_id").references(() => organizations.id, {
+    onDelete: "cascade",
+  }),
   eventId: uuid("event_id").references(() => events.id, { onDelete: "cascade" }),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),

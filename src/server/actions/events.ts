@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq, gte, isNull } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { events, organizations, venues } from "@/db/schema";
@@ -111,6 +111,66 @@ export async function publishEvent(id: string) {
 
 export async function cancelEvent(id: string) {
   return updateEvent(id, { status: "cancelled" });
+}
+
+export async function getOrgStats(organizationId: string) {
+  const session = await requireSession();
+  await assertOwnsOrg(
+    organizationId,
+    session.user.id,
+    (session.user as { role?: string }).role,
+  );
+
+  const [agg] = await db
+    .select({
+      totalEvents: sql<number>`count(*)::int`,
+      activeEvents: sql<number>`count(*) filter (where status = 'active')::int`,
+      capacity: sql<number>`coalesce(sum(capacity), 0)::int`,
+      sold: sql<number>`coalesce(sum(tickets_sold), 0)::int`,
+    })
+    .from(events)
+    .where(and(eq(events.organizationId, organizationId), isNull(events.deletedAt)));
+
+  // Top eventos por ventas
+  const top = await db
+    .select({
+      id: events.id,
+      slug: events.slug,
+      name: events.name,
+      ticketsSold: events.ticketsSold,
+      capacity: events.capacity,
+      status: events.status,
+      startDate: events.startDate,
+    })
+    .from(events)
+    .where(and(eq(events.organizationId, organizationId), isNull(events.deletedAt)))
+    .orderBy(desc(events.ticketsSold))
+    .limit(5);
+
+  // Próximos eventos
+  const now = new Date();
+  const upcoming = await db
+    .select({
+      id: events.id,
+      slug: events.slug,
+      name: events.name,
+      ticketsSold: events.ticketsSold,
+      capacity: events.capacity,
+      status: events.status,
+      startDate: events.startDate,
+    })
+    .from(events)
+    .where(
+      and(
+        eq(events.organizationId, organizationId),
+        isNull(events.deletedAt),
+        gte(events.startDate, now),
+      ),
+    )
+    .orderBy(events.startDate)
+    .limit(5);
+
+  return { agg: agg ?? { totalEvents: 0, activeEvents: 0, capacity: 0, sold: 0 }, top, upcoming };
 }
 
 export async function listEventsByOrg(organizationId: string) {
