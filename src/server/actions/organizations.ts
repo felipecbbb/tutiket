@@ -95,7 +95,10 @@ export async function updateOrganization(id: string, input: UpdateOrganizationIn
 
 export async function listMyOrganizations() {
   const session = await requireSession({ redirectTo: "/org" });
-  return listMyMemberships(session.user.id);
+  return listMyMemberships(
+    session.user.id,
+    (session.user as { role?: string }).role,
+  );
 }
 
 export async function getOrganizationBySlug(slug: string) {

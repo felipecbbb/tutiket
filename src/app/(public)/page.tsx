@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { listPublicUpcomingEvents } from "@/server/actions/events";
+import { getCurrentUser } from "@/server/auth";
 import { SiteHeader } from "@/components/shared/site-header";
 import { SiteFooter } from "@/components/shared/site-footer";
 import { EventCard } from "@/components/events/event-card";
@@ -9,7 +10,10 @@ import { Hero } from "./_components/hero";
 export const dynamic = "force-dynamic"; // hasta tener BD configurada
 
 export default async function HomePage() {
-  const events = await listPublicUpcomingEvents(12);
+  const [events, user] = await Promise.all([
+    listPublicUpcomingEvents(12),
+    getCurrentUser(),
+  ]);
 
   return (
     <main className="relative min-h-screen overflow-hidden flex flex-col">
@@ -37,7 +41,7 @@ export default async function HomePage() {
       </div>
 
       <SiteHeader />
-      <Hero />
+      <Hero isAuthenticated={Boolean(user)} />
 
       <section id="proximos" className="px-6 py-16 lg:px-12">
         <div className="mx-auto max-w-7xl">
@@ -60,7 +64,7 @@ export default async function HomePage() {
           </div>
 
           {events.length === 0 ? (
-            <EmptyState />
+            <EmptyState isAuthenticated={Boolean(user)} />
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {events.map((evt) => (
@@ -87,19 +91,18 @@ export default async function HomePage() {
   );
 }
 
-function EmptyState() {
+function EmptyState({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-card/50 px-6 py-16 text-center">
       <p className="font-display text-2xl font-bold">Aún no hay eventos publicados</p>
       <p className="max-w-md text-sm text-muted-foreground">
-        Pronto verás aquí los próximos planes. ¿Quieres que el tuyo sea el
-        primero? Crea tu organización y publica un evento en minutos.
+        Pronto verás aquí los próximos planes.
       </p>
       <Link
-        href="/registro"
+        href={isAuthenticated ? "/org/nueva" : "/registro"}
         className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
       >
-        Empezar gratis
+        {isAuthenticated ? "Crear organización" : "Empezar gratis"}
         <ArrowUpRight className="size-4" />
       </Link>
     </div>

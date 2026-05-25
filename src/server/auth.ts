@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -10,9 +11,13 @@ export type UserRole =
   | "pr_manager"
   | "admin";
 
-export async function getSession() {
+/**
+ * Sesión actual. Cacheada por React `cache()` — múltiples llamadas en el
+ * mismo request resuelven UNA vez (evita N round-trips por página).
+ */
+export const getSession = cache(async () => {
   return auth.api.getSession({ headers: await headers() });
-}
+});
 
 export async function getCurrentUser() {
   const session = await getSession();

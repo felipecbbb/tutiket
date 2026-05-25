@@ -103,7 +103,7 @@ export default async function OrgDetailPage({ params }: { params: Params }) {
             {events.map((evt) => (
               <li key={evt.id}>
                 <Link
-                  href={`/eventos/${evt.slug}`}
+                  href={`/org/${slug}/eventos/${evt.id}`}
                   className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/60"
                 >
                   <div className="min-w-0">

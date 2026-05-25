@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   MANAGER_ROLES,
@@ -7,12 +7,6 @@ import {
   type OrgMemberRole,
 } from "@/db/schema";
 
-/**
- * Comprueba que el usuario es miembro activo de la organización con uno
- * de los roles permitidos. Lanza Error si no.
- *
- * - admin global (user.role === "admin") salta los checks.
- */
 export async function assertOrgMember(
   orgId: string,
   userId: string,
@@ -33,14 +27,14 @@ export async function assertOrgMember(
     .limit(1);
 
   if (!row) throw new Error("No eres miembro de esta organización");
-  if (row.status !== "active") throw new Error("Tu acceso a esta organización está suspendido");
+  if (row.status !== "active")
+    throw new Error("Tu acceso a esta organización está suspendido");
   if (!allowedRoles.includes(row.role))
     throw new Error("Tu rol en esta organización no permite esta acción");
 
   return { role: row.role };
 }
 
-/** Atajo para acciones de gestión (owner/admin/organizer/pr_manager). */
 export function assertCanManage(
   orgId: string,
   userId: string,
@@ -49,7 +43,6 @@ export function assertCanManage(
   return assertOrgMember(orgId, userId, MANAGER_ROLES, globalRole);
 }
 
-/** Atajo para acciones de owner/admin solo. */
 export function assertOwnerOrAdmin(
   orgId: string,
   userId: string,
@@ -59,10 +52,26 @@ export function assertOwnerOrAdmin(
 }
 
 /**
- * Lista las organizaciones donde el usuario tiene membership activa,
- * con su rol en cada una.
+ * Lista las organizaciones donde el usuario tiene membership activa.
+ * Si es admin global, devuelve TODAS las orgs activas (con role 'owner'
+ * simulado para los flujos de gestión).
  */
-export async function listMyMemberships(userId: string) {
+export async function listMyMemberships(userId: string, globalRole?: string) {
+  if (globalRole === "admin") {
+    const rows = await db
+      .select({
+        id: organizations.id,
+        slug: organizations.slug,
+        name: organizations.name,
+        sector: organizations.sector,
+        location: organizations.location,
+        status: organizations.status,
+      })
+      .from(organizations)
+      .where(isNull(organizations.deletedAt));
+    return rows.map((r) => ({ ...r, memberRole: "owner" as OrgMemberRole }));
+  }
+
   return db
     .select({
       id: organizations.id,
@@ -79,6 +88,7 @@ export async function listMyMemberships(userId: string) {
       and(
         eq(organizationMembers.userId, userId),
         eq(organizationMembers.status, "active"),
+        isNull(organizations.deletedAt),
       ),
     );
 }

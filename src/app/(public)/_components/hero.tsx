@@ -5,7 +5,10 @@ import Link from "next/link";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function Hero() {
+export function Hero({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const primaryHref = isAuthenticated ? "/org/nueva" : "/registro";
+  const primaryLabel = isAuthenticated ? "Crear mi evento" : "Crear cuenta";
+
   return (
     <section className="px-6 pt-12 pb-16 lg:px-12 lg:pt-20 lg:pb-24">
       <div className="mx-auto max-w-7xl">
@@ -51,8 +54,8 @@ export function Hero() {
           className="mt-10 flex flex-wrap items-center gap-4"
         >
           <Button size="xl" variant="default" asChild>
-            <Link href="/registro">
-              Crear mi evento
+            <Link href={primaryHref}>
+              {primaryLabel}
               <ArrowUpRight className="size-5" />
             </Link>
           </Button>
