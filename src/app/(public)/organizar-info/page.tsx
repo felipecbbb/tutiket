@@ -8,9 +8,55 @@ import { getCurrentUser } from "@/server/auth";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Organiza tu evento",
-  description: "Vende entradas, gestiona equipo y lleva tu contabilidad solo. Empieza gratis.",
+  title: "Para organizadores",
+  description: "Ticketing + contabilidad automática con Noa. Empieza gratis.",
 };
+
+const FEATURES = [
+  {
+    icon: Ticket,
+    title: "Tantos tipos como necesites",
+    body: "General, VIP, early bird, guestlist, nominativa. Cada una con stock, precio y ventana de venta independiente.",
+    color: "#FFD7C7",
+    ink: "#FF6B5B",
+  },
+  {
+    icon: Megaphone,
+    title: "RR.PP. con comisiones",
+    body: "Crea equipos, asigna comisiones por miembro o por evento. Atribución automática.",
+    color: "#D8F3DC",
+    ink: "#1B7E5E",
+  },
+  {
+    icon: ScanLine,
+    title: "Validación móvil",
+    body: "Escaneo desde cualquier smartphone. QR firmado HMAC, imposible falsificar.",
+    color: "#FFE9A8",
+    ink: "#B58900",
+  },
+  {
+    icon: Users,
+    title: "Listas de invitados",
+    body: "Bulk import CSV, exportación, prepagados vs free. Cada invitado con su QR.",
+    color: "#E5D9F2",
+    ink: "#6D28D9",
+  },
+  {
+    icon: BarChart3,
+    title: "Stats en vivo",
+    body: "Ventas, ingresos, ocupación, top entradas. Datos para decidir.",
+    color: "#CFE2FF",
+    ink: "#1B5EBA",
+  },
+  {
+    icon: Receipt,
+    title: "Contabilidad con Noa",
+    body: "Cada euro que entra se categoriza solo en tu Noa. IVA, modelos, facturas — sin Excel.",
+    color: "#1d1d1f",
+    ink: "#FF6B5B",
+    dark: true,
+  },
+];
 
 export default async function OrganizarInfoPage() {
   const user = await getCurrentUser();
@@ -20,103 +66,144 @@ export default async function OrganizarInfoPage() {
     <main className="min-h-screen flex flex-col bg-background">
       <SiteHeader />
 
-      <section className="px-6 py-16 lg:px-12 lg:py-24">
-        <div className="mx-auto max-w-4xl text-center">
-          <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+      <section className="relative overflow-hidden px-6 py-20 lg:px-12 lg:py-28">
+        <div className="pointer-events-none absolute -top-24 -right-24 size-[440px] rounded-full bg-gradient-to-br from-[#FFD7C7] to-[#FFE9A8] blur-3xl opacity-70" />
+        <div className="pointer-events-none absolute -bottom-32 -left-24 size-[400px] rounded-full bg-gradient-to-br from-[#D8F3DC] to-[#CFE2FF] blur-3xl opacity-50" />
+
+        <div className="relative mx-auto max-w-5xl text-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFD7C7] px-3 py-1 text-xs font-bold uppercase tracking-widest text-[#FF6B5B]">
             · Para organizadores ·
-          </p>
-          <h1 className="mt-3 font-sans text-5xl font-bold tracking-tight md:text-7xl leading-[1.05]">
-            Vende tickets como un pro.
-            <br />
-            <span className="text-muted-foreground">Cobra como uno.</span>
+          </span>
+          <h1 className="mt-5 font-sans text-5xl font-bold tracking-[-0.02em] md:text-7xl leading-[1.02]">
+            Vende.{" "}
+            <span className="relative inline-block">
+              Cobra.
+              <svg
+                aria-hidden
+                viewBox="0 0 160 12"
+                preserveAspectRatio="none"
+                className="absolute -bottom-1 left-0 w-full h-3 text-[#FF6B5B]"
+              >
+                <path
+                  d="M2 9 Q 30 1, 60 6 T 120 6 T 158 6"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              </svg>
+            </span>{" "}
+            Contabiliza.
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-muted-foreground md:text-lg">
+          <p className="mx-auto mt-7 max-w-2xl text-muted-foreground md:text-lg">
             Noa Events junta ticketing y contabilidad en una sola plataforma.
-            Configura tu primer evento en 5 minutos. Tu equipo valida en la
-            puerta. Tu contabilidad se actualiza sola en Noa.
+            Primer evento en 5 minutos. Tu equipo valida en la puerta. Tu
+            contabilidad se actualiza sola en{" "}
+            <Link href="/nosotros" className="underline underline-offset-4">
+              Noa
+            </Link>
+            .
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Link
               href={ctaHref}
-              className="inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3 text-base font-medium text-background hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-full bg-foreground px-7 py-3.5 text-base font-medium text-background hover:opacity-90"
             >
               Empezar ahora
               <ArrowUpRight className="size-5" />
+            </Link>
+            <Link
+              href="/recursos/calculadora"
+              className="inline-flex items-center gap-2 rounded-full border border-foreground/15 bg-background/80 backdrop-blur px-7 py-3.5 text-base font-medium hover:bg-muted"
+            >
+              Calcular ingresos
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="px-6 py-12 lg:px-12">
-        <div className="mx-auto max-w-5xl">
+      <section className="px-6 py-16 lg:px-12">
+        <div className="mx-auto max-w-6xl">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Card
-              icon={<Ticket />}
-              title="Tantos tipos como necesites"
-              body="General, VIP, early bird, guestlist, nominativa. Cada una con stock, precio, límite por usuario y ventana de venta propias."
-            />
-            <Card
-              icon={<Megaphone />}
-              title="RR.PP. con comisiones"
-              body="Crea equipos, asigna comisiones por miembro o evento. Cada venta atribuida automáticamente."
-            />
-            <Card
-              icon={<ScanLine />}
-              title="Validación móvil"
-              body="Tu equipo escanea con el móvil. QR firmado HMAC — imposible falsificar. Validación en tiempo real."
-            />
-            <Card
-              icon={<Users />}
-              title="Listas de invitados"
-              body="Importa en bulk, exporta CSV, gestiona prepagados. Cada invitado recibe su QR único."
-            />
-            <Card
-              icon={<BarChart3 />}
-              title="Stats en vivo"
-              body="Ventas, ingresos, ocupación, top entradas, asistencia. Decisiones con datos reales."
-            />
-            <Card
-              icon={<Receipt />}
-              title="Contabilidad con Noa"
-              body="Cada euro que entra se categoriza solo en Noa. IVA, autónomos, sociedades — sin Excel."
-              highlight
-            />
+            {FEATURES.map((f) => {
+              const Icon = f.icon;
+              const dark = f.dark;
+              return (
+                <div
+                  key={f.title}
+                  className={`group rounded-2xl border p-6 transition-all hover:-translate-y-1 ${
+                    dark
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-foreground/10 bg-card hover:border-foreground/30 hover:shadow-lg"
+                  }`}
+                >
+                  <div
+                    className="inline-flex size-11 items-center justify-center rounded-xl"
+                    style={{
+                      backgroundColor: dark ? "rgba(255,255,255,0.1)" : f.color,
+                    }}
+                  >
+                    <Icon
+                      className="size-5"
+                      style={{ color: dark ? f.ink : f.ink }}
+                    />
+                  </div>
+                  <p className="mt-5 font-sans text-lg font-bold tracking-tight">
+                    {f.title}
+                  </p>
+                  <p
+                    className={`mt-2 text-sm leading-relaxed ${
+                      dark ? "text-background/70" : "text-muted-foreground"
+                    }`}
+                  >
+                    {f.body}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
       <section className="px-6 py-20 lg:px-12">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="font-sans text-3xl font-bold tracking-tight md:text-4xl text-center">
-            Tres pasos
+        <div className="mx-auto max-w-5xl">
+          <h2 className="font-sans text-4xl font-bold tracking-[-0.02em] md:text-5xl text-center">
+            Tres pasos. <span className="text-muted-foreground">Sin más.</span>
           </h2>
-          <ol className="mt-10 grid gap-6 md:grid-cols-3 list-none">
+          <ol className="mt-14 grid gap-6 md:grid-cols-3 list-none">
             <Step
-              n={1}
+              n="01"
               title="Crea tu organización"
-              body="Datos básicos. El super-admin revisa tu cuenta para activarte en la web pública (suele tardar horas)."
+              body="Datos básicos. Revisamos tu cuenta en horas y activamos los eventos públicos."
+              color="#FFD7C7"
+              ink="#FF6B5B"
             />
             <Step
-              n={2}
+              n="02"
               title="Publica tu evento"
-              body="Sube cartel, define entradas, asigna RR.PP., invita validadores. Personaliza la página."
+              body="Cartel, fechas, entradas, RR.PP., validadores. Personaliza la página."
+              color="#D8F3DC"
+              ink="#1B7E5E"
             />
             <Step
-              n={3}
+              n="03"
               title="Cobra y contabiliza"
-              body="Recibe en tu cuenta bancaria. Noa actualiza tu contabilidad automáticamente."
+              body="Recibes en tu banco. Noa actualiza tu contabilidad sin que toques nada."
+              color="#E5D9F2"
+              ink="#6D28D9"
             />
           </ol>
         </div>
       </section>
 
       <section className="px-6 py-16 lg:px-12">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-border bg-foreground text-background p-10 text-center">
-          <h2 className="font-sans text-3xl font-bold tracking-tight md:text-4xl">
-            Tu primer evento, en menos de lo que tardas en pedir un café.
+        <div className="relative mx-auto max-w-3xl overflow-hidden rounded-3xl border border-border bg-foreground p-10 text-background text-center">
+          <div className="pointer-events-none absolute -top-24 -right-24 size-[280px] rounded-full bg-[#FF6B5B] blur-3xl opacity-30" />
+          <h2 className="font-sans text-3xl font-bold tracking-[-0.01em] md:text-4xl">
+            Empieza antes de terminarte el café.
           </h2>
           <p className="mt-4 text-background/70">
-            Sin coste de set-up. Sin contrato. Solo pagas comisión cuando vendes.
+            Sin coste inicial. Sin contrato. Solo 2% cuando vendes.
           </p>
           <Link
             href={ctaHref}
@@ -133,52 +220,34 @@ export default async function OrganizarInfoPage() {
   );
 }
 
-function Card({
-  icon,
+function Step({
+  n,
   title,
   body,
-  highlight,
+  color,
+  ink,
 }: {
-  icon: React.ReactNode;
+  n: string;
   title: string;
   body: string;
-  highlight?: boolean;
+  color: string;
+  ink: string;
 }) {
   return (
-    <div
-      className={`rounded-2xl border p-6 transition-all hover:-translate-y-0.5 ${
-        highlight
-          ? "border-foreground bg-foreground text-background"
-          : "border-border bg-card hover:border-foreground/40"
-      }`}
-    >
+    <li className="rounded-3xl border border-foreground/10 bg-card p-7">
       <div
-        className={`inline-flex size-10 items-center justify-center rounded-xl ${
-          highlight ? "bg-background/15" : "bg-muted"
-        } [&_svg]:size-5`}
+        className="inline-flex size-14 items-center justify-center rounded-2xl"
+        style={{ backgroundColor: color }}
       >
-        {icon}
+        <span
+          className="font-sans text-lg font-bold tracking-tight"
+          style={{ color: ink }}
+        >
+          {n}
+        </span>
       </div>
-      <p className="mt-4 font-sans font-bold tracking-tight">{title}</p>
-      <p
-        className={`mt-1.5 text-sm ${
-          highlight ? "text-background/70" : "text-muted-foreground"
-        }`}
-      >
-        {body}
-      </p>
-    </div>
-  );
-}
-
-function Step({ n, title, body }: { n: number; title: string; body: string }) {
-  return (
-    <li className="rounded-2xl border border-border bg-card p-6">
-      <span className="inline-flex size-9 items-center justify-center rounded-full bg-foreground text-background font-bold">
-        {n}
-      </span>
-      <p className="mt-4 font-sans text-lg font-bold tracking-tight">{title}</p>
-      <p className="mt-1.5 text-sm text-muted-foreground">{body}</p>
+      <p className="mt-5 font-sans text-xl font-bold tracking-tight">{title}</p>
+      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{body}</p>
     </li>
   );
 }
