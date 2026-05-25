@@ -1,9 +1,16 @@
 import { createAuthClient } from "better-auth/react";
-import { magicLinkClient } from "better-auth/client/plugins";
+import {
+  inferAdditionalFields,
+  magicLinkClient,
+} from "better-auth/client/plugins";
+import type { auth } from "@/lib/auth";
 
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3007",
-  plugins: [magicLinkClient()],
+  plugins: [
+    inferAdditionalFields<typeof auth>(),
+    magicLinkClient(),
+  ],
 });
 
 export const {

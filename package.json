@@ -53,8 +53,10 @@
     "zod": "^4.4.3",
     "zustand": "^5.0.13"
   },
+  "optionalDependencies": {
+    "@rolldown/binding-darwin-arm64": "^1.0.2"
+  },
   "devDependencies": {
-    "@rolldown/binding-darwin-arm64": "^1.0.2",
     "@tailwindcss/postcss": "^4",
     "@tanstack/react-query-devtools": "^5.100.14",
     "@testing-library/jest-dom": "^6.9.1",

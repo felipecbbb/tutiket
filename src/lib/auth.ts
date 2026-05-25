@@ -21,6 +21,24 @@ export const auth = betterAuth({
   }),
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL ?? env.NEXT_PUBLIC_APP_URL,
+  user: {
+    // Sin estos campos, session.user NO los incluye y todos los chequeos
+    // role==='admin' fallan silenciosamente.
+    additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "user",
+        input: false, // no se setea desde signUp; lo cambian admin/promoción
+      },
+      surname: { type: "string", required: false },
+      dni: { type: "string", required: false },
+      birthDate: { type: "date", required: false },
+      gender: { type: "string", required: false },
+      phone: { type: "string", required: false },
+      postalCode: { type: "string", required: false },
+      loyaltyPoints: { type: "number", defaultValue: 0, input: false },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false, // TODO: activar en producción
