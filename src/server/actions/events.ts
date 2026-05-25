@@ -199,7 +199,7 @@ export async function listPublicUpcomingEvents(limit = 24) {
           eq(events.status, "active"),
           eq(events.isPublic, true),
           isNull(events.deletedAt),
-          gte(events.startDate, now),
+          gte(events.endDate, now),
         ),
       )
       .orderBy(events.startDate)
@@ -217,6 +217,7 @@ export async function getPublicEventBySlug(slug: string) {
     .where(
       and(
         eq(events.slug, slug),
+        eq(events.status, "active"),
         eq(events.isPublic, true),
         isNull(events.deletedAt),
       ),

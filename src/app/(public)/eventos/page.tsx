@@ -43,6 +43,7 @@ export default async function EventsListPage() {
                   location={evt.location}
                   category={evt.category}
                   startDate={evt.startDate}
+                  endDate={evt.endDate}
                   bannerUrl={evt.bannerUrl}
                   thumbnailUrl={evt.thumbnailUrl}
                   capacity={evt.capacity}

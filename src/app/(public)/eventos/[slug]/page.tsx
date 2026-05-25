@@ -21,6 +21,8 @@ async function loadEventPage(slug: string) {
     .where(eq(events.slug, slug))
     .limit(1);
   if (!evt || evt.deletedAt || !evt.isPublic) return null;
+  // Solo eventos activos (no drafts/cancelados) son visibles públicamente
+  if (evt.status !== "active") return null;
 
   const [org] = await db
     .select()

@@ -8,6 +8,7 @@ type EventCardProps = {
   location: string;
   category: string;
   startDate: Date | string;
+  endDate?: Date | string;
   bannerUrl?: string | null;
   thumbnailUrl?: string | null;
   capacity: number;
@@ -20,6 +21,7 @@ export function EventCard({
   location,
   category,
   startDate,
+  endDate,
   bannerUrl,
   thumbnailUrl,
   capacity,
@@ -28,6 +30,10 @@ export function EventCard({
   const cover = bannerUrl ?? thumbnailUrl ?? null;
   const ratio = capacity > 0 ? Math.min(100, Math.round((ticketsSold / capacity) * 100)) : 0;
   const soldOut = capacity > 0 && ticketsSold >= capacity;
+  const now = new Date();
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : null;
+  const inProgress = end !== null && start <= now && now <= end;
 
   return (
     <Link
@@ -49,6 +55,12 @@ export function EventCard({
         <span className="absolute top-3 left-3 rounded-full bg-background/85 px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest backdrop-blur">
           {category}
         </span>
+        {inProgress && !soldOut && (
+          <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase text-accent-foreground">
+            <span className="size-1.5 rounded-full bg-accent-foreground animate-pulse" />
+            En curso
+          </span>
+        )}
         {soldOut && (
           <span className="absolute top-3 right-3 rounded-full bg-destructive px-2.5 py-1 text-[10px] font-bold uppercase text-destructive-foreground">
             Agotado

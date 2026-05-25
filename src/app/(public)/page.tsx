@@ -75,6 +75,7 @@ export default async function HomePage() {
                   location={evt.location}
                   category={evt.category}
                   startDate={evt.startDate}
+                  endDate={evt.endDate}
                   bannerUrl={evt.bannerUrl}
                   thumbnailUrl={evt.thumbnailUrl}
                   capacity={evt.capacity}
