@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { LoginForm } from "./login-form";
 import { env } from "@/lib/env";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +21,9 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <LoginForm hasGoogle={hasGoogle} />
+        <Suspense fallback={<div className="h-64 animate-pulse rounded-lg bg-muted/40" />}>
+          <LoginForm hasGoogle={hasGoogle} />
+        </Suspense>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           ¿No tienes cuenta?{" "}
           <Link href="/registro" className="font-medium text-primary hover:underline">
