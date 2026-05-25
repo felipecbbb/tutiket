@@ -21,6 +21,15 @@ export const eventStatusEnum = pgEnum("event_status", [
   "cancelled",
 ]);
 
+export const eventStyleEnum = pgEnum("event_style", [
+  "modern",     // sleek, glassmorphism, gradientes
+  "minimal",    // limpio, tipografía grande
+  "bold",       // colores fuertes, bordes marcados
+  "festival",   // overlay rave, marquee
+  "sport",      // estilo deportivo
+  "elegant",    // boda/gala
+]);
+
 export const ticketTypeKindEnum = pgEnum("ticket_type_kind", [
   "general",
   "vip",
@@ -38,6 +47,12 @@ export const events = pgTable("events", {
 
   bannerUrl: text("banner_url"),
   thumbnailUrl: text("thumbnail_url"),
+
+  // Personalización visual del evento (control del organizador)
+  themeColor: text("theme_color"),            // hex primario (ej #ff5a1f)
+  accentColor: text("accent_color"),          // hex acento
+  eventStyle: eventStyleEnum("event_style").default("modern").notNull(),
+  customTagline: text("custom_tagline"),      // frase debajo del título
 
   startDate: timestamp("start_date", { withTimezone: true }).notNull(),
   endDate: timestamp("end_date", { withTimezone: true }).notNull(),
