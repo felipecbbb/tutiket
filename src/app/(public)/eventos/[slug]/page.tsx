@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, formatPrice } from "@/lib/utils";
 
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 type Params = Promise<{ slug: string }>;
 

@@ -127,34 +127,41 @@ export async function listEventsByOrg(organizationId: string) {
     .orderBy(desc(events.startDate));
 }
 
-/** Listado público de eventos activos próximos. NO requiere sesión. */
+/** Listado público de eventos activos próximos. NO requiere sesión.
+ *  Tolerante a fallos de BD para que la home no peté en build cuando
+ *  todavía no hay credenciales reales configuradas. */
 export async function listPublicUpcomingEvents(limit = 24) {
   const now = new Date();
-  return db
-    .select({
-      id: events.id,
-      slug: events.slug,
-      name: events.name,
-      location: events.location,
-      category: events.category,
-      bannerUrl: events.bannerUrl,
-      thumbnailUrl: events.thumbnailUrl,
-      startDate: events.startDate,
-      endDate: events.endDate,
-      capacity: events.capacity,
-      ticketsSold: events.ticketsSold,
-    })
-    .from(events)
-    .where(
-      and(
-        eq(events.status, "active"),
-        eq(events.isPublic, true),
-        isNull(events.deletedAt),
-        gte(events.startDate, now),
-      ),
-    )
-    .orderBy(events.startDate)
-    .limit(limit);
+  try {
+    return await db
+      .select({
+        id: events.id,
+        slug: events.slug,
+        name: events.name,
+        location: events.location,
+        category: events.category,
+        bannerUrl: events.bannerUrl,
+        thumbnailUrl: events.thumbnailUrl,
+        startDate: events.startDate,
+        endDate: events.endDate,
+        capacity: events.capacity,
+        ticketsSold: events.ticketsSold,
+      })
+      .from(events)
+      .where(
+        and(
+          eq(events.status, "active"),
+          eq(events.isPublic, true),
+          isNull(events.deletedAt),
+          gte(events.startDate, now),
+        ),
+      )
+      .orderBy(events.startDate)
+      .limit(limit);
+  } catch (err) {
+    console.warn("[events] listPublicUpcomingEvents falló:", err);
+    return [];
+  }
 }
 
 export async function getPublicEventBySlug(slug: string) {

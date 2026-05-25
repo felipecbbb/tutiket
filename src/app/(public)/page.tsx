@@ -6,7 +6,7 @@ import { SiteFooter } from "@/components/shared/site-footer";
 import { EventCard } from "@/components/events/event-card";
 import { Hero } from "./_components/hero";
 
-export const revalidate = 60; // ISR — refresca cada minuto
+export const dynamic = "force-dynamic"; // hasta tener BD configurada
 
 export default async function HomePage() {
   const events = await listPublicUpcomingEvents(12);
