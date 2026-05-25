@@ -75,3 +75,19 @@ export async function updateTicketType(id: string, input: UpdateTicketTypeInput)
 export async function listTicketTypesByEvent(eventId: string) {
   return db.select().from(ticketTypes).where(eq(ticketTypes.eventId, eventId));
 }
+
+export async function deleteTicketType(id: string) {
+  const session = await requireSession();
+  const [tt] = await db.select().from(ticketTypes).where(eq(ticketTypes.id, id)).limit(1);
+  if (!tt) throw new Error("Tipo de entrada no encontrado");
+  if (tt.soldQuantity > 0)
+    throw new Error("No se puede borrar: ya hay entradas vendidas");
+  const evt = await loadEventManaged(
+    tt.eventId,
+    session.user.id,
+    (session.user as { role?: string }).role,
+  );
+  await db.delete(ticketTypes).where(eq(ticketTypes.id, id));
+  revalidatePath("/org");
+  revalidatePath(`/eventos/${evt.slug}`);
+}

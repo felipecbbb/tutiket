@@ -6,7 +6,6 @@ import {
   Calendar,
   ExternalLink,
   MapPin,
-  Ticket,
   Users,
 } from "lucide-react";
 import { db } from "@/lib/db";
@@ -15,8 +14,9 @@ import { getOrganizationBySlug } from "@/server/actions/organizations";
 import { listTicketTypesByEvent } from "@/server/actions/ticket-types";
 import { listEventGuests } from "@/server/actions/guests";
 import { Button } from "@/components/ui/button";
-import { formatDate, formatPrice } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { EventStatusButtons } from "./status-buttons";
+import { TicketTypesSection } from "./ticket-types-section";
 
 type Params = Promise<{ slug: string; eventId: string }>;
 
@@ -113,44 +113,22 @@ export default async function ManageEventPage({ params }: { params: Params }) {
       </div>
 
       {/* Ticket types */}
-      <section className="mt-12">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-2xl font-bold">Entradas</h2>
-        </div>
-        {tts.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border bg-card/50 p-6 text-sm text-muted-foreground">
-            <p className="flex items-center gap-2">
-              <Ticket className="size-4" />
-              Aún sin tipos de entrada. Sin esto no se puede publicar el evento.
-            </p>
-            <p className="mt-2 text-xs">
-              [Form para crear ticket types llegará en la siguiente iteración.]
-            </p>
-          </div>
-        ) : (
-          <ul className="grid gap-3 md:grid-cols-2">
-            {tts.map((tt) => (
-              <li
-                key={tt.id}
-                className="rounded-xl border border-border bg-card p-4"
-              >
-                <div className="flex items-baseline justify-between">
-                  <span className="font-display text-lg font-bold">{tt.name}</span>
-                  <span className="font-display text-xl font-bold text-primary">
-                    {formatPrice(tt.priceCents)}
-                  </span>
-                </div>
-                <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">
-                  {tt.kind}
-                </p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {tt.soldQuantity}/{tt.maxQuantity} vendidas · máx {tt.userLimit} por usuario
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <div className="mt-12">
+        <TicketTypesSection
+          eventId={evt.id}
+          ticketTypes={tts.map((tt) => ({
+            id: tt.id,
+            name: tt.name,
+            description: tt.description,
+            kind: tt.kind,
+            priceCents: tt.priceCents,
+            maxQuantity: tt.maxQuantity,
+            soldQuantity: tt.soldQuantity,
+            userLimit: tt.userLimit,
+            isNominative: tt.isNominative,
+          }))}
+        />
+      </div>
 
       <section className="mt-10">
         <div className="mb-4 flex items-center justify-between">
