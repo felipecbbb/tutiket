@@ -22,7 +22,18 @@ import { Logo } from "@/components/shared/logo";
 
 type Role = "user" | "organizer" | "validator" | "pr_member" | "pr_manager" | "admin";
 
-type NavItem = { href: string; label: string; icon: LucideIcon; roles?: Role[] };
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  /** Visible si globalRole está en la lista. Si undefined → siempre visible. */
+  roles?: Role[];
+  /** Visible adicionalmente si el user TIENE memberships en alguna org
+   *  (cubre el caso "soy user global pero owner de una org"). */
+  alsoIfHasOrgs?: boolean;
+  /** Visible adicionalmente si el user TIENE prMember row (es RR.PP.). */
+  alsoIfIsPrMember?: boolean;
+};
 
 const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
   {
@@ -41,18 +52,21 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
         label: "Mis organizaciones",
         icon: Building2,
         roles: ["organizer", "pr_manager", "admin"],
+        alsoIfHasOrgs: true,
       },
       {
         href: "/eventos-gestion",
         label: "Eventos",
         icon: CalendarCheck,
         roles: ["organizer", "pr_manager", "admin"],
+        alsoIfHasOrgs: true,
       },
       {
         href: "/locales",
         label: "Locales",
         icon: MapPin,
         roles: ["organizer", "pr_manager", "admin"],
+        alsoIfHasOrgs: true,
       },
     ],
   },
@@ -64,6 +78,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
         label: "Mi panel",
         icon: Megaphone,
         roles: ["pr_member", "pr_manager", "admin"],
+        alsoIfIsPrMember: true,
       },
     ],
   },
@@ -75,6 +90,7 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
         label: "Escanear entradas",
         icon: ScanLine,
         roles: ["validator", "organizer", "admin"],
+        alsoIfHasOrgs: true,
       },
     ],
   },
@@ -96,20 +112,35 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
   },
 ];
 
-function visible(item: NavItem, role: Role) {
+function visible(
+  item: NavItem,
+  role: Role,
+  ctx: { hasOrgs: boolean; isPrMember: boolean },
+) {
   if (!item.roles) return true;
-  return item.roles.includes(role);
+  if (item.roles.includes(role)) return true;
+  if (item.alsoIfHasOrgs && ctx.hasOrgs) return true;
+  if (item.alsoIfIsPrMember && ctx.isPrMember) return true;
+  return false;
 }
 
 export function Sidebar({
   role,
   email,
   name,
+  hasOrgs = false,
+  isPrMember = false,
 }: {
   role: Role;
   email: string;
   name: string;
+  /** True si el user tiene al menos una membership activa en una org */
+  hasOrgs?: boolean;
+  /** True si el user tiene fila en pr_members */
+  isPrMember?: boolean;
 }) {
+  const ctx = { hasOrgs, isPrMember };
+
   return (
     <nav className="flex h-full flex-col p-4">
       <Link
@@ -122,7 +153,7 @@ export function Sidebar({
 
       <div className="flex-1 overflow-y-auto -mx-1 px-1">
         {NAV_GROUPS.map((group) => {
-          const items = group.items.filter((i) => visible(i, role));
+          const items = group.items.filter((i) => visible(i, role, ctx));
           if (items.length === 0) return null;
           return (
             <div key={group.title} className="mt-4 first:mt-0">
