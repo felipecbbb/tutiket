@@ -5,7 +5,14 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { events, organizations, venues } from "@/db/schema";
 import { requireSession } from "@/server/auth";
+import { assertCanManage } from "@/server/memberships";
 import { uniqueSlug } from "@/server/slug";
+import {
+  createEventSchema,
+  updateEventSchema,
+  type CreateEventInput,
+  type UpdateEventInput,
+} from "@/lib/validations/event";
 
 async function eventSlugExists(slug: string): Promise<boolean> {
   const rows = await db
@@ -15,29 +22,12 @@ async function eventSlugExists(slug: string): Promise<boolean> {
     .limit(1);
   return rows.length > 0;
 }
-import {
-  createEventSchema,
-  updateEventSchema,
-  type CreateEventInput,
-  type UpdateEventInput,
-} from "@/lib/validations/event";
-
-async function assertOwnsOrg(orgId: string, userId: string, role?: string) {
-  const [org] = await db
-    .select()
-    .from(organizations)
-    .where(and(eq(organizations.id, orgId), isNull(organizations.deletedAt)))
-    .limit(1);
-  if (!org) throw new Error("Organización no encontrada");
-  if (org.userId !== userId && role !== "admin") throw new Error("Sin permisos");
-  return org;
-}
 
 export async function createEvent(input: CreateEventInput) {
   const session = await requireSession();
   const data = createEventSchema.parse(input);
   const role = (session.user as { role?: string }).role;
-  await assertOwnsOrg(data.organizationId, session.user.id, role);
+  await assertCanManage(data.organizationId, session.user.id, role);
 
   if (data.venueId) {
     const [v] = await db
@@ -91,7 +81,7 @@ export async function updateEvent(id: string, input: UpdateEventInput) {
     .limit(1);
   if (!event) throw new Error("Evento no encontrado");
   const role = (session.user as { role?: string }).role;
-  await assertOwnsOrg(event.organizationId, session.user.id, role);
+  await assertCanManage(event.organizationId, session.user.id, role);
 
   const [updated] = await db
     .update(events)
@@ -113,9 +103,23 @@ export async function cancelEvent(id: string) {
   return updateEvent(id, { status: "cancelled" });
 }
 
+export async function listEventsByOrg(organizationId: string) {
+  const session = await requireSession();
+  await assertCanManage(
+    organizationId,
+    session.user.id,
+    (session.user as { role?: string }).role,
+  );
+  return db
+    .select()
+    .from(events)
+    .where(and(eq(events.organizationId, organizationId), isNull(events.deletedAt)))
+    .orderBy(desc(events.startDate));
+}
+
 export async function getOrgStats(organizationId: string) {
   const session = await requireSession();
-  await assertOwnsOrg(
+  await assertCanManage(
     organizationId,
     session.user.id,
     (session.user as { role?: string }).role,
@@ -131,7 +135,6 @@ export async function getOrgStats(organizationId: string) {
     .from(events)
     .where(and(eq(events.organizationId, organizationId), isNull(events.deletedAt)));
 
-  // Top eventos por ventas
   const top = await db
     .select({
       id: events.id,
@@ -147,7 +150,6 @@ export async function getOrgStats(organizationId: string) {
     .orderBy(desc(events.ticketsSold))
     .limit(5);
 
-  // Próximos eventos
   const now = new Date();
   const upcoming = await db
     .select({
@@ -173,23 +175,7 @@ export async function getOrgStats(organizationId: string) {
   return { agg: agg ?? { totalEvents: 0, activeEvents: 0, capacity: 0, sold: 0 }, top, upcoming };
 }
 
-export async function listEventsByOrg(organizationId: string) {
-  const session = await requireSession();
-  await assertOwnsOrg(
-    organizationId,
-    session.user.id,
-    (session.user as { role?: string }).role,
-  );
-  return db
-    .select()
-    .from(events)
-    .where(and(eq(events.organizationId, organizationId), isNull(events.deletedAt)))
-    .orderBy(desc(events.startDate));
-}
-
-/** Listado público de eventos activos próximos. NO requiere sesión.
- *  Tolerante a fallos de BD para que la home no peté en build cuando
- *  todavía no hay credenciales reales configuradas. */
+/** Listado público de eventos activos próximos. NO requiere sesión. */
 export async function listPublicUpcomingEvents(limit = 24) {
   const now = new Date();
   try {
@@ -236,5 +222,7 @@ export async function getPublicEventBySlug(slug: string) {
       ),
     )
     .limit(1);
+  // void to keep symmetric with other helpers
+  void organizations;
   return evt ?? null;
 }

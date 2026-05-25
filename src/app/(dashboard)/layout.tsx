@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireSession } from "@/server/auth";
 import { SignOutButton } from "@/components/shared/sign-out-button";
+import { NotificationsBell } from "@/components/shared/notifications-bell";
 
 export default async function DashboardLayout({
   children,
@@ -34,6 +35,11 @@ export default async function DashboardLayout({
                 Validar
               </Link>
             )}
+            {(role === "pr_member" || role === "pr_manager" || role === "admin") && (
+              <Link href="/pr" className="hover:text-primary">
+                RR.PP.
+              </Link>
+            )}
             {role === "admin" && (
               <Link href="/admin" className="hover:text-primary">
                 Admin
@@ -41,7 +47,8 @@ export default async function DashboardLayout({
             )}
           </nav>
 
-          <div className="flex items-center gap-3 text-sm">
+          <div className="flex items-center gap-2 text-sm">
+            <NotificationsBell />
             <span className="hidden text-muted-foreground sm:inline">
               {session.user.email}
             </span>

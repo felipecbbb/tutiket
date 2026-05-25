@@ -3,9 +3,16 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { organizations, venues } from "@/db/schema";
+import { venues } from "@/db/schema";
 import { requireSession } from "@/server/auth";
+import { assertCanManage } from "@/server/memberships";
 import { uniqueSlug } from "@/server/slug";
+import {
+  createVenueSchema,
+  updateVenueSchema,
+  type CreateVenueInput,
+  type UpdateVenueInput,
+} from "@/lib/validations/venue";
 
 async function venueSlugExists(slug: string): Promise<boolean> {
   const rows = await db
@@ -15,28 +22,11 @@ async function venueSlugExists(slug: string): Promise<boolean> {
     .limit(1);
   return rows.length > 0;
 }
-import {
-  createVenueSchema,
-  updateVenueSchema,
-  type CreateVenueInput,
-  type UpdateVenueInput,
-} from "@/lib/validations/venue";
-
-async function assertOwnsOrg(orgId: string, userId: string, role?: string) {
-  const [org] = await db
-    .select()
-    .from(organizations)
-    .where(and(eq(organizations.id, orgId), isNull(organizations.deletedAt)))
-    .limit(1);
-  if (!org) throw new Error("Organización no encontrada");
-  if (org.userId !== userId && role !== "admin") throw new Error("Sin permisos");
-  return org;
-}
 
 export async function createVenue(input: CreateVenueInput) {
   const session = await requireSession();
   const data = createVenueSchema.parse(input);
-  await assertOwnsOrg(
+  await assertCanManage(
     data.organizationId,
     session.user.id,
     (session.user as { role?: string }).role,
@@ -73,7 +63,7 @@ export async function updateVenue(id: string, input: UpdateVenueInput) {
     .where(and(eq(venues.id, id), isNull(venues.deletedAt)))
     .limit(1);
   if (!venue) throw new Error("Local no encontrado");
-  await assertOwnsOrg(
+  await assertCanManage(
     venue.organizationId,
     session.user.id,
     (session.user as { role?: string }).role,
@@ -90,7 +80,7 @@ export async function updateVenue(id: string, input: UpdateVenueInput) {
 
 export async function listVenuesByOrg(organizationId: string) {
   const session = await requireSession();
-  await assertOwnsOrg(
+  await assertCanManage(
     organizationId,
     session.user.id,
     (session.user as { role?: string }).role,

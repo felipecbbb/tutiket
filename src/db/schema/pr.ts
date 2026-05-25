@@ -47,10 +47,16 @@ export const prTeams = pgTable("pr_teams", {
 export const prMembers = pgTable("pr_members", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+  organizationId: uuid("organization_id").references(() => organizations.id, {
+    onDelete: "cascade",
+  }),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   phone: varchar("phone", { length: 30 }),
   role: prRoleEnum("role").default("rrpp").notNull(),
+
+  // Código único de afiliado para tracking de ventas (?pr=ABCDEF)
+  code: text("code").unique(),
 
   // Comisión en basis points (1% = 100 bps, evita decimales)
   commissionBps: integer("commission_bps").default(0).notNull(),

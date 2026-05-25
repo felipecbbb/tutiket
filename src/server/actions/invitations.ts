@@ -5,8 +5,15 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
-import { invitations, organizations, user } from "@/db/schema";
+import {
+  invitations,
+  organizationMembers,
+  organizations,
+  user,
+  type OrgMemberRole,
+} from "@/db/schema";
 import { requireSession } from "@/server/auth";
+import { assertCanManage } from "@/server/memberships";
 import { sendEmail } from "@/lib/email";
 import { InvitationEmail } from "@/emails/invitation";
 import {
@@ -28,29 +35,30 @@ function token() {
 async function assertCanInvite(input: {
   organizationId?: string;
   userId: string;
-  role: string;
   inviterRole?: string;
 }) {
-  // Admin global puede invitar siempre
-  if (input.inviterRole === "admin") return null;
-
-  // Para invitar a una org concreta, el inviter debe ser dueño de la org
-  if (input.organizationId) {
-    const [org] = await db
-      .select()
-      .from(organizations)
-      .where(
-        and(eq(organizations.id, input.organizationId), isNull(organizations.deletedAt)),
-      )
-      .limit(1);
-    if (!org) throw new Error("Organización no encontrada");
-    if (org.userId !== input.userId) throw new Error("Sin permisos sobre la organización");
-    return org;
+  if (!input.organizationId) {
+    if (input.inviterRole !== "admin")
+      throw new Error("Selecciona una organización para la invitación");
+    return null;
   }
-
-  // Sin organizationId, solo admin (ya filtrado arriba)
-  throw new Error("Selecciona una organización para la invitación");
+  await assertCanManage(input.organizationId, input.userId, input.inviterRole);
+  const [org] = await db
+    .select()
+    .from(organizations)
+    .where(and(eq(organizations.id, input.organizationId), isNull(organizations.deletedAt)))
+    .limit(1);
+  if (!org) throw new Error("Organización no encontrada");
+  return org;
 }
+
+// Mapeo del role de invitación al rol de membership (1:1 hoy)
+const INVITATION_TO_MEMBER: Record<string, OrgMemberRole> = {
+  validator: "validator",
+  pr_member: "pr_member",
+  pr_manager: "pr_manager",
+  organizer: "organizer",
+};
 
 export async function createInvitation(input: CreateInvitationInput) {
   const session = await requireSession();
@@ -60,7 +68,6 @@ export async function createInvitation(input: CreateInvitationInput) {
   const org = await assertCanInvite({
     organizationId: data.organizationId,
     userId: session.user.id,
-    role: data.role,
     inviterRole,
   });
 
@@ -168,6 +175,37 @@ export async function acceptInvitation(rawToken: string) {
       .update(user)
       .set({ role: inv.role, updatedAt: new Date() })
       .where(eq(user.id, session.user.id));
+  }
+
+  // Crear membership en la organización (si la invitación está vinculada)
+  if (inv.organizationId) {
+    const memberRole = INVITATION_TO_MEMBER[inv.role];
+    if (memberRole) {
+      await db
+        .insert(organizationMembers)
+        .values({
+          organizationId: inv.organizationId,
+          userId: session.user.id,
+          role: memberRole,
+          status: "active",
+        })
+        .onConflictDoUpdate({
+          target: [organizationMembers.organizationId, organizationMembers.userId],
+          set: { role: memberRole, status: "active", updatedAt: new Date() },
+        });
+    }
+
+    // pr_member / pr_manager → asegurar prMember para comisiones y código
+    if (inv.role === "pr_member" || inv.role === "pr_manager") {
+      const { ensurePrMemberForUser } = await import("@/server/actions/pr");
+      await ensurePrMemberForUser({
+        organizationId: inv.organizationId,
+        userId: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        role: inv.role === "pr_manager" ? "rrpp_manager" : "rrpp",
+      });
+    }
   }
 
   await db

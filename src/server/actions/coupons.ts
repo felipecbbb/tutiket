@@ -1,10 +1,11 @@
 "use server";
 
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { coupons, organizations } from "@/db/schema";
+import { coupons } from "@/db/schema";
 import { requireSession } from "@/server/auth";
+import { assertCanManage } from "@/server/memberships";
 import {
   createCouponSchema,
   updateCouponSchema,
@@ -12,21 +13,10 @@ import {
   type UpdateCouponInput,
 } from "@/lib/validations/coupon";
 
-async function assertOwnsOrg(orgId: string, userId: string, role?: string) {
-  if (role === "admin") return;
-  const [org] = await db
-    .select({ userId: organizations.userId })
-    .from(organizations)
-    .where(and(eq(organizations.id, orgId), isNull(organizations.deletedAt)))
-    .limit(1);
-  if (!org) throw new Error("Organización no encontrada");
-  if (org.userId !== userId) throw new Error("Sin permisos");
-}
-
 export async function createCoupon(input: CreateCouponInput) {
   const session = await requireSession();
   const data = createCouponSchema.parse(input);
-  await assertOwnsOrg(
+  await assertCanManage(
     data.organizationId,
     session.user.id,
     (session.user as { role?: string }).role,
@@ -57,7 +47,7 @@ export async function updateCoupon(id: string, input: UpdateCouponInput) {
   const [coupon] = await db.select().from(coupons).where(eq(coupons.id, id)).limit(1);
   if (!coupon) throw new Error("Cupón no encontrado");
   if (coupon.organizationId) {
-    await assertOwnsOrg(
+    await assertCanManage(
       coupon.organizationId,
       session.user.id,
       (session.user as { role?: string }).role,
@@ -85,7 +75,7 @@ export async function deleteCoupon(id: string) {
   const [coupon] = await db.select().from(coupons).where(eq(coupons.id, id)).limit(1);
   if (!coupon) throw new Error("Cupón no encontrado");
   if (coupon.organizationId) {
-    await assertOwnsOrg(
+    await assertCanManage(
       coupon.organizationId,
       session.user.id,
       (session.user as { role?: string }).role,
@@ -97,7 +87,7 @@ export async function deleteCoupon(id: string) {
 
 export async function listCouponsByOrg(organizationId: string) {
   const session = await requireSession();
-  await assertOwnsOrg(
+  await assertCanManage(
     organizationId,
     session.user.id,
     (session.user as { role?: string }).role,
@@ -109,15 +99,14 @@ export async function listCouponsByOrg(organizationId: string) {
     .orderBy(desc(coupons.createdAt));
 }
 
-/**
- * Aplica un cupón al precio dado. Para el flujo de checkout (Fase 2).
- * Devuelve descuento en céntimos y el cupón resuelto.
- */
 export async function previewCoupon(
   code: string,
   eventId: string,
   priceCents: number,
-): Promise<{ ok: true; discountCents: number; coupon: typeof coupons.$inferSelect } | { ok: false; reason: string }> {
+): Promise<
+  | { ok: true; discountCents: number; coupon: typeof coupons.$inferSelect }
+  | { ok: false; reason: string }
+> {
   const normalized = code.toUpperCase().trim();
   const [coupon] = await db.select().from(coupons).where(eq(coupons.code, normalized)).limit(1);
   if (!coupon) return { ok: false, reason: "Cupón no encontrado" };

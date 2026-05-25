@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowUpRight, Ticket } from "lucide-react";
+import { ArrowUpRight, Sparkles, Ticket } from "lucide-react";
 import { requireSession } from "@/server/auth";
+import { getMyPoints } from "@/server/actions/loyalty";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SearchParams = Promise<{ error?: string }>;
@@ -13,6 +14,7 @@ export default async function MyAccountPage({
   const session = await requireSession();
   const { error } = await searchParams;
   const role = (session.user as { role?: string }).role ?? "user";
+  const points = await getMyPoints();
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -53,23 +55,37 @@ export default async function MyAccountPage({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">¿Organizas eventos?</CardTitle>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Sparkles className="size-4 text-primary" />
+              Twinpoints
+            </CardTitle>
             <CardDescription>
-              Crea tu organización y empieza a vender entradas en minutos.
+              Acumulas puntos con cada compra y canjeas premios.
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <p className="font-display text-3xl font-bold tabular-nums">
+              {points.toLocaleString("es-ES")}
+            </p>
             <Link
-              href="/org"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+              href="/mi/puntos"
+              className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
             >
-              {role === "user"
-                ? "Empezar a organizar"
-                : "Ir a mis organizaciones"}
+              Ver historial y premios
               <ArrowUpRight className="size-4" />
             </Link>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mt-4">
+        <Link
+          href="/org"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          {role === "user" ? "¿Organizas eventos? Empieza aquí" : "Mis organizaciones"}
+          <ArrowUpRight className="size-4" />
+        </Link>
       </div>
 
       <div className="mt-10 rounded-xl border border-border bg-card p-6">

@@ -2,14 +2,16 @@ import { notFound } from "next/navigation";
 import { Mail, RefreshCw, X } from "lucide-react";
 import { getOrganizationBySlug } from "@/server/actions/organizations";
 import { listOrgInvitations } from "@/server/actions/invitations";
+import { listOrgMembers } from "@/server/actions/memberships";
 import { formatDate } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InviteForm } from "./invite-form";
 import { RevokeButton } from "./revoke-button";
+import { MemberRow } from "./member-row";
 
 type Params = Promise<{ slug: string }>;
 
-const ROLE_LABELS: Record<string, string> = {
+const INV_ROLE_LABELS: Record<string, string> = {
   validator: "Validador",
   pr_member: "RR.PP.",
   pr_manager: "Resp. RR.PP.",
@@ -28,10 +30,13 @@ export default async function TeamPage({ params }: { params: Params }) {
   const org = await getOrganizationBySlug(slug);
   if (!org) notFound();
 
-  const invs = await listOrgInvitations(org.id);
+  const [invs, members] = await Promise.all([
+    listOrgInvitations(org.id),
+    listOrgMembers(org.id),
+  ]);
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
         · Equipo de {org.name} ·
       </p>
@@ -43,7 +48,54 @@ export default async function TeamPage({ params }: { params: Params }) {
         comisión, o co-organizadores con permisos completos.
       </p>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-2">
+      <section className="mt-10">
+        <div className="mb-3 flex items-end justify-between">
+          <h2 className="font-display text-2xl font-bold">
+            Miembros activos ({members.length})
+          </h2>
+        </div>
+        {members.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
+            Aún no hay miembros. Empieza enviando una invitación abajo.
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-xs uppercase tracking-widest text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">Persona</th>
+                  <th className="px-4 py-3 text-left font-medium">Email</th>
+                  <th className="px-4 py-3 text-left font-medium">Rol</th>
+                  <th className="px-4 py-3 text-left font-medium">Estado</th>
+                  <th className="px-4 py-3 text-right font-medium">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {members.map((m) => (
+                  <MemberRow
+                    key={m.userId}
+                    member={{
+                      organizationId: org.id,
+                      userId: m.userId,
+                      name: m.name,
+                      email: m.email,
+                      role: m.role,
+                      status: m.status,
+                      createdAt: formatDate(m.createdAt, {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      }),
+                    }}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="mt-12 grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Nueva invitación</CardTitle>
@@ -84,7 +136,7 @@ export default async function TeamPage({ params }: { params: Params }) {
                           {inv.status}
                         </span>
                         <span className="text-xs uppercase tracking-widest text-muted-foreground">
-                          {ROLE_LABELS[inv.role] ?? inv.role}
+                          {INV_ROLE_LABELS[inv.role] ?? inv.role}
                         </span>
                       </div>
                       <p className="mt-1 truncate font-medium text-sm">{inv.email}</p>
@@ -130,7 +182,7 @@ export default async function TeamPage({ params }: { params: Params }) {
             )}
           </CardContent>
         </Card>
-      </div>
+      </section>
     </div>
   );
 }

@@ -3,9 +3,16 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { organizations, user } from "@/db/schema";
+import { organizationMembers, organizations, user } from "@/db/schema";
 import { requireSession } from "@/server/auth";
+import { assertCanManage, assertOwnerOrAdmin, listMyMemberships } from "@/server/memberships";
 import { uniqueSlug } from "@/server/slug";
+import {
+  createOrganizationSchema,
+  updateOrganizationSchema,
+  type CreateOrganizationInput,
+  type UpdateOrganizationInput,
+} from "@/lib/validations/organization";
 
 async function orgSlugExists(slug: string): Promise<boolean> {
   const rows = await db
@@ -15,12 +22,6 @@ async function orgSlugExists(slug: string): Promise<boolean> {
     .limit(1);
   return rows.length > 0;
 }
-import {
-  createOrganizationSchema,
-  updateOrganizationSchema,
-  type CreateOrganizationInput,
-  type UpdateOrganizationInput,
-} from "@/lib/validations/organization";
 
 export async function createOrganization(input: CreateOrganizationInput) {
   const session = await requireSession({ redirectTo: "/org" });
@@ -44,7 +45,18 @@ export async function createOrganization(input: CreateOrganizationInput) {
     })
     .returning();
 
-  // Promocionar a organizer si todavía es user
+  // Membership de owner
+  await db
+    .insert(organizationMembers)
+    .values({
+      organizationId: created.id,
+      userId: session.user.id,
+      role: "owner",
+      status: "active",
+    })
+    .onConflictDoNothing();
+
+  // Promocionar a organizer si todavía es user (rol global)
   const currentRole = (session.user as { role?: string }).role;
   if (currentRole === "user") {
     await db
@@ -61,17 +73,11 @@ export async function updateOrganization(id: string, input: UpdateOrganizationIn
   const session = await requireSession();
   const data = updateOrganizationSchema.parse(input);
 
-  const [org] = await db
-    .select()
-    .from(organizations)
-    .where(and(eq(organizations.id, id), isNull(organizations.deletedAt)))
-    .limit(1);
-
-  if (!org) throw new Error("Organización no encontrada");
-  const role = (session.user as { role?: string }).role;
-  if (org.userId !== session.user.id && role !== "admin") {
-    throw new Error("Sin permisos");
-  }
+  await assertOwnerOrAdmin(
+    id,
+    session.user.id,
+    (session.user as { role?: string }).role,
+  );
 
   const [updated] = await db
     .update(organizations)
@@ -89,12 +95,7 @@ export async function updateOrganization(id: string, input: UpdateOrganizationIn
 
 export async function listMyOrganizations() {
   const session = await requireSession({ redirectTo: "/org" });
-  return db
-    .select()
-    .from(organizations)
-    .where(
-      and(eq(organizations.userId, session.user.id), isNull(organizations.deletedAt)),
-    );
+  return listMyMemberships(session.user.id);
 }
 
 export async function getOrganizationBySlug(slug: string) {
@@ -105,7 +106,16 @@ export async function getOrganizationBySlug(slug: string) {
     .where(and(eq(organizations.slug, slug), isNull(organizations.deletedAt)))
     .limit(1);
   if (!org) return null;
-  const role = (session.user as { role?: string }).role;
-  if (org.userId !== session.user.id && role !== "admin") return null;
-  return org;
+
+  // Comprueba membership (managers); si no, ¿es admin global?
+  try {
+    await assertCanManage(
+      org.id,
+      session.user.id,
+      (session.user as { role?: string }).role,
+    );
+    return org;
+  } catch {
+    return null;
+  }
 }
