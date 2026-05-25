@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowUpRight, BadgePercent, BarChart3, Calendar, MapPin, Megaphone, Pencil, Plus, Receipt, Ticket, Users } from "lucide-react";
+import { ArrowUpRight, BadgePercent, BarChart3, Calendar, MapPin, Megaphone, Pencil, Receipt, Ticket, Users } from "lucide-react";
 import { getOrganizationBySlug } from "@/server/actions/organizations";
 import { listEventsByOrg } from "@/server/actions/events";
 import { listVenuesByOrg } from "@/server/actions/venues";
 import { formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { NewEventButton } from "./_components/new-event-button";
+import { NewVenueButton } from "./_components/new-venue-button";
 
 type Params = Promise<{ slug: string }>;
 
@@ -90,12 +92,10 @@ export default async function OrgDetailPage({ params }: { params: Params }) {
       <section className="mt-12">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="font-display text-2xl font-bold">Eventos</h2>
-          <Button asChild size="sm">
-            <Link href={`/org/${slug}/eventos/nuevo`}>
-              <Plus className="size-4" />
-              Nuevo evento
-            </Link>
-          </Button>
+          <NewEventButton
+            organizationId={org.id}
+            venues={venues.map((v) => ({ id: v.id, name: v.name }))}
+          />
         </div>
 
         {events.length === 0 ? (
@@ -147,12 +147,7 @@ export default async function OrgDetailPage({ params }: { params: Params }) {
       <section className="mt-12">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="font-display text-2xl font-bold">Locales</h2>
-          <Button asChild size="sm" variant="outline">
-            <Link href={`/org/${slug}/locales/nuevo`}>
-              <Plus className="size-4" />
-              Nuevo local
-            </Link>
-          </Button>
+          <NewVenueButton organizationId={org.id} />
         </div>
 
         {venues.length === 0 ? (

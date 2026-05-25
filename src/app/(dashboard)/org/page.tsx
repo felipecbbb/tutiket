@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ArrowUpRight, Plus, Sparkles } from "lucide-react";
+import { ArrowUpRight, Sparkles } from "lucide-react";
 import { listMyOrganizations } from "@/server/actions/organizations";
-import { Button } from "@/components/ui/button";
+import { NewOrgButton } from "./_components/new-org-button";
 
 export default async function OrgIndexPage() {
   const orgs = await listMyOrganizations();
@@ -17,12 +17,7 @@ export default async function OrgIndexPage() {
             Tus organizaciones
           </h1>
         </div>
-        <Button asChild>
-          <Link href="/org/nueva">
-            <Plus className="size-4" />
-            Nueva organización
-          </Link>
-        </Button>
+        <NewOrgButton />
       </div>
 
       {orgs.length === 0 ? (
@@ -35,12 +30,9 @@ export default async function OrgIndexPage() {
             Crea tu primera organización para empezar a publicar eventos y
             vender entradas. Te llevará 30 segundos.
           </p>
-          <Button asChild className="mt-2">
-            <Link href="/org/nueva">
-              Crear organización
-              <ArrowUpRight className="size-4" />
-            </Link>
-          </Button>
+          <div className="mt-2">
+            <NewOrgButton />
+          </div>
         </div>
       ) : (
         <ul className="mt-10 grid gap-4 md:grid-cols-2">
