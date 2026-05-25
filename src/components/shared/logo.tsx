@@ -2,14 +2,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * Logo Noa Events.
- *
- * Variantes:
- * - "mark"  → solo el cuadrado "noa" (cuando hay poco espacio)
- * - "full"  → cuadrado "noa" + texto "events"
- * - "wordmark" → texto "noa events" en línea (para emails)
- *
- * Mantiene la identidad Noa (DM Sans bold minúscula sobre cuadrado oscuro)
- * y añade "events" como sub-producto.
+ * Marca: cuadrado oscuro con "noa" + pequeño punto de color (sticker
+ * decorativo, herencia del "smiley" de la familia Noa).
  */
 type LogoProps = {
   variant?: "mark" | "full" | "wordmark";
@@ -17,14 +11,14 @@ type LogoProps = {
   size?: "sm" | "md" | "lg";
 };
 
-const SIZE_MAP = {
-  sm: { mark: "size-7 text-[11px]", text: "text-sm" },
-  md: { mark: "size-9 text-sm", text: "text-base" },
-  lg: { mark: "size-12 text-lg", text: "text-xl" },
+const SIZE = {
+  sm: { mark: "size-7 text-[11px]", text: "text-sm", dot: "size-1.5 -right-0.5 -top-0.5" },
+  md: { mark: "size-9 text-sm", text: "text-base", dot: "size-2 -right-0.5 -top-0.5" },
+  lg: { mark: "size-12 text-lg", text: "text-xl", dot: "size-2.5 -right-1 -top-1" },
 };
 
 export function Logo({ variant = "full", className, size = "md" }: LogoProps) {
-  const s = SIZE_MAP[size];
+  const s = SIZE[size];
 
   if (variant === "wordmark") {
     return (
@@ -42,28 +36,27 @@ export function Logo({ variant = "full", className, size = "md" }: LogoProps) {
   }
 
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-2 font-sans tracking-tight",
-        className,
-      )}
-    >
-      <span
-        aria-hidden
-        className={cn(
-          "inline-flex items-center justify-center rounded-xl bg-foreground font-bold leading-none text-background lowercase",
-          s.mark,
-        )}
-      >
-        noa
-      </span>
-      {variant === "full" && (
+    <span className={cn("inline-flex items-center gap-2 font-sans tracking-tight", className)}>
+      <span className="relative inline-block">
         <span
+          aria-hidden
           className={cn(
-            "font-medium text-foreground/80 lowercase tracking-tight",
-            s.text,
+            "inline-flex items-center justify-center rounded-xl bg-foreground font-bold leading-none text-background lowercase",
+            s.mark,
           )}
         >
+          noa
+        </span>
+        <span
+          aria-hidden
+          className={cn(
+            "absolute rounded-full bg-[#FF6B5B] ring-2 ring-background",
+            s.dot,
+          )}
+        />
+      </span>
+      {variant === "full" && (
+        <span className={cn("font-medium text-foreground/80 lowercase tracking-tight", s.text)}>
           events
         </span>
       )}
