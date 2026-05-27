@@ -26,9 +26,11 @@ export function SiteFooter() {
           <FooterCol
             title="Producto"
             links={[
-              { href: "/eventos", label: "Eventos" },
-              { href: "/venues", label: "Locales" },
+              { href: "/soluciones/ticketing", label: "Ticketing" },
+              { href: "/soluciones/contabilidad", label: "Contabilidad con Noa" },
+              { href: "/eventos", label: "Tipos de evento" },
               { href: "/organizar-info", label: "Para organizadores" },
+              { href: "/recursos/calculadora", label: "Calculadora" },
             ]}
           />
           <FooterCol
